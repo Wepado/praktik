@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+</head>
+<body>
+    <h2>Профиль</h2>
+    <p id="userData">Загрузка...</p>
+    <button onclick="logout()">Выйти</button>
+    <script>
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const res = await fetch('https://localhost:7007/users', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const users = await res.json();
+                document.getElementById('userData').innerText = `Вы вошли как: ${users[0].username}`;
+            } else {
+                alert('Ошибка авторизации');
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+        checkAuth();
+    </script>
+</body>
+</html>

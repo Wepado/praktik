@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+</head>
+<body>
+    <h2>Регистрация</h2>
+    <form id="registerForm">
+        <input type="text" id="username" placeholder="Имя" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('https://localhost:7007/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    age: 25, weight: 70, height: 175, gender: "male", activityLevel: "active", dailyCalorieGoal: 2000
+                })
+            });
+            alert(await res.text());
+        });
+    </script>
+</body>
+</html>

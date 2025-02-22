@@ -166,3 +166,6 @@ C:\Users\fedya\source\repos\practica\practica\obj\Debug\net8.0\ref\practica.dll
 C:\Users\fedya\source\repos\practica\practica\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
 C:\Users\fedya\source\repos\practica\practica\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
 C:\Users\fedya\source\repos\practica\practica\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+C:\Users\fedya\source\repos\practica\practica\obj\Debug\net8.0\practica.sourcelink.json
+C:\Users\fedya\source\repos\practica\practica\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\fedya\source\repos\practica\practica\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll

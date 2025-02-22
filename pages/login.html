@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+</head>
+<body>
+    <h2>Вход</h2>
+    <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Пароль" required>
+        <button type="submit">Войти</button>
+    </form>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('https://localhost:7007/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('token', data.token);
+                alert('Успешный вход!');
+                window.location.href = "profile.html"; // Перенаправляем
+            } else {
+                alert(data.message || 'Ошибка входа');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,21 +1,97 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()  // Разрешить доступ с любого домена
+              .AllowAnyMethod()  // Разрешить любой HTTP-метод (GET, POST и т.д.)
+              .AllowAnyHeader(); // Разрешить любые заголовки
+    });
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+var key = "МойСекретныйКлюч123"; // Секретный ключ для подписи токена (лучше хранить в `appsettings.json`)
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+    });
+
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 var message = " Неправильно введены данные, проверьте и попробуйте снова.";
 
+app.UseCors("AllowAll"); // Применяем CORS политику
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapPost("/register", async (User user, ApplicationDbContext db) =>
+{
+    var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
+    if (existingUser != null)
+        return Results.BadRequest("Email уже используется!");
+
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+    return Results.Ok("Пользователь зарегистрирован!");
+});
+
+app.MapPost("/login", async (UserLoginDto loginDto, ApplicationDbContext db) =>
+{
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email && u.Password == loginDto.Password);
+    if (user == null)
+        return Results.BadRequest("Неверный email или пароль!");
+
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email)
+    };
+
+    var keyBytes = Encoding.UTF8.GetBytes(key);
+    var keySymmetric = new SymmetricSecurityKey(keyBytes);
+    var creds = new SigningCredentials(keySymmetric, SecurityAlgorithms.HmacSha256);
+
+    var token = new JwtSecurityToken(
+        claims: claims,
+        expires: DateTime.UtcNow.AddHours(1),
+        signingCredentials: creds
+    );
+
+    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+    return Results.Ok(new { Token = tokenString });
+});
+
 // *** USERS ***
-app.MapGet("/users", async (ApplicationDbContext db) => await db.Users.ToListAsync());
+app.MapGet("/users", async (ApplicationDbContext db) => await db.Users.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapGet("/users/{id}", async (int id, ApplicationDbContext db) =>
-    await db.Users.FindAsync(id) is User user ? Results.Ok(user) : Results.NotFound());
+    await db.Users.FindAsync(id) is User user ? Results.Ok(user) : Results.NotFound())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/users", async (User user, ApplicationDbContext db) =>
 {
@@ -31,7 +107,7 @@ app.MapPost("/users", async (User user, ApplicationDbContext db) =>
     db.Users.Add(user);
     await db.SaveChangesAsync();
     return Results.Created($"/users/{user.Id}", user);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationDbContext db) =>
 {
@@ -50,7 +126,7 @@ app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationDbContext 
 
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/users/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -60,13 +136,15 @@ app.MapDelete("/users/{id}", async (int id, ApplicationDbContext db) =>
     db.Users.Remove(user);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 // *** PRODUCTS ***
-app.MapGet("/products", async (ApplicationDbContext db) => await db.Products.ToListAsync());
+app.MapGet("/products", async (ApplicationDbContext db) => await db.Products.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapGet("/products/{id}", async (int id, ApplicationDbContext db) =>
-    await db.Products.FindAsync(id) is Product product ? Results.Ok(product) : Results.NotFound());
+    await db.Products.FindAsync(id) is Product product ? Results.Ok(product) : Results.NotFound())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/products", async (Product product, ApplicationDbContext db) =>
 {
@@ -79,7 +157,7 @@ app.MapPost("/products", async (Product product, ApplicationDbContext db) =>
     db.Products.Add(product);
     await db.SaveChangesAsync();
     return Results.Created($"/products/{product.Id}", product);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapPut("/products/{id}", async (int id, Product updatedProduct, ApplicationDbContext db) =>
 {
@@ -94,7 +172,7 @@ app.MapPut("/products/{id}", async (int id, Product updatedProduct, ApplicationD
 
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/products/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -104,10 +182,11 @@ app.MapDelete("/products/{id}", async (int id, ApplicationDbContext db) =>
     db.Products.Remove(product);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 // *** MEALS ***
-app.MapGet("/meals", async (ApplicationDbContext db) => await db.Meals.ToListAsync());
+app.MapGet("/meals", async (ApplicationDbContext db) => await db.Meals.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/meals", async (Meal meal, ApplicationDbContext db) =>
 {
@@ -119,7 +198,7 @@ app.MapPost("/meals", async (Meal meal, ApplicationDbContext db) =>
     db.Meals.Add(meal);
     await db.SaveChangesAsync();
     return Results.Created($"/meals/{meal.Id}", meal);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/meals/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -129,10 +208,11 @@ app.MapDelete("/meals/{id}", async (int id, ApplicationDbContext db) =>
     db.Meals.Remove(meal);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 // *** MEAL ENTRIES ***
-app.MapGet("/mealentries", async (ApplicationDbContext db) => await db.MealEntries.ToListAsync());
+app.MapGet("/mealentries", async (ApplicationDbContext db) => await db.MealEntries.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/mealentries", async (MealEntry mealEntry, ApplicationDbContext db) =>
 {
@@ -144,7 +224,7 @@ app.MapPost("/mealentries", async (MealEntry mealEntry, ApplicationDbContext db)
     db.MealEntries.Add(mealEntry);
     await db.SaveChangesAsync();
     return Results.Created($"/mealentries/{mealEntry.Id}", mealEntry);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/mealentries/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -154,10 +234,11 @@ app.MapDelete("/mealentries/{id}", async (int id, ApplicationDbContext db) =>
     db.MealEntries.Remove(mealEntry);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 // *** CALORIES BURNED ***
-app.MapGet("/caloriesburned", async (ApplicationDbContext db) => await db.CaloriesBurneds.ToListAsync());
+app.MapGet("/caloriesburned", async (ApplicationDbContext db) => await db.CaloriesBurneds.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/caloriesburned", async (CaloriesBurned caloriesBurned, ApplicationDbContext db) =>
 {
@@ -169,7 +250,7 @@ app.MapPost("/caloriesburned", async (CaloriesBurned caloriesBurned, Application
     db.CaloriesBurneds.Add(caloriesBurned);
     await db.SaveChangesAsync();
     return Results.Created($"/caloriesburned/{caloriesBurned.Id}", caloriesBurned);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/caloriesburned/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -179,10 +260,11 @@ app.MapDelete("/caloriesburned/{id}", async (int id, ApplicationDbContext db) =>
     db.CaloriesBurneds.Remove(caloriesBurned);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 // *** DAILY REPORTS ***
-app.MapGet("/dailyreports", async (ApplicationDbContext db) => await db.DailyReports.ToListAsync());
+app.MapGet("/dailyreports", async (ApplicationDbContext db) => await db.DailyReports.ToListAsync())
+    .RequireAuthorization(); // защищаем
 
 app.MapPost("/dailyreports", async (DailyReport dailyReport, ApplicationDbContext db) =>
 {
@@ -194,7 +276,7 @@ app.MapPost("/dailyreports", async (DailyReport dailyReport, ApplicationDbContex
     db.DailyReports.Add(dailyReport);
     await db.SaveChangesAsync();
     return Results.Created($"/dailyreports/{dailyReport.Id}", dailyReport);
-});
+}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/dailyreports/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -204,127 +286,127 @@ app.MapDelete("/dailyreports/{id}", async (int id, ApplicationDbContext db) =>
     db.DailyReports.Remove(dailyReport);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).RequireAuthorization(); // защищаем
 
 app.Run();
 
 // Models
 public class User
-{
-    public int Id { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public int Age { get; set; }
-    public double Weight { get; set; }
-    public double Height { get; set; }
-    public string Gender { get; set; }
-    public string ActivityLevel { get; set; }
-    public double DailyCalorieGoal { get; set; }
-}
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public int Age { get; set; }
+        public double Weight { get; set; }
+        public double Height { get; set; }
+        public string Gender { get; set; }
+        public string ActivityLevel { get; set; }
+        public double DailyCalorieGoal { get; set; }
+    }
 
-public class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public double Calories { get; set; }
-    public double Proteins { get; set; }
-    public double Fats { get; set; }
-    public double Carbohydrates { get; set; }
-}
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Calories { get; set; }
+        public double Proteins { get; set; }
+        public double Fats { get; set; }
+        public double Carbohydrates { get; set; }
+    }
 
-public class Meal
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public string MealType { get; set; }
-    public double TotalCalories { get; set; }
-}
+    public class Meal
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public string MealType { get; set; }
+        public double TotalCalories { get; set; }
+    }
 
-public class MealEntry
-{
-    public int Id { get; set; }
-    public int MealId { get; set; }
-    public int ProductId { get; set; }
-    public double Quantity { get; set; }
-    public double Calories { get; set; }
-}
+    public class MealEntry
+    {
+        public int Id { get; set; }
+        public int MealId { get; set; }
+        public int ProductId { get; set; }
+        public double Quantity { get; set; }
+        public double Calories { get; set; }
+    }
 
-public class CaloriesBurned
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public double BURNED { get; set; }
-}
+    public class CaloriesBurned
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public double BURNED { get; set; }
+    }
 
-public class DailyReport
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public double TotalCaloriesConsumed { get; set; }
-    public double TotalCaloriesBurned { get; set; }
-    public double CalorieBalance { get; set; }
-}
+    public class DailyReport
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public double TotalCaloriesConsumed { get; set; }
+        public double TotalCaloriesBurned { get; set; }
+        public double CalorieBalance { get; set; }
+    }
 
-public class UserDto
-{
-    public int Id { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public int Age { get; set; }
-    public double Weight { get; set; }
-    public double Height { get; set; }
-    public string Gender { get; set; }
-    public string ActivityLevel { get; set; }
-    public double DailyCalorieGoal { get; set; }
-}
+    public class UserDto
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public int Age { get; set; }
+        public double Weight { get; set; }
+        public double Height { get; set; }
+        public string Gender { get; set; }
+        public string ActivityLevel { get; set; }
+        public double DailyCalorieGoal { get; set; }
+    }
 
-public class ProductDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public double Calories { get; set; }
-    public double Proteins { get; set; }
-    public double Fats { get; set; }
-    public double Carbohydrates { get; set; }
-}
+    public class ProductDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Calories { get; set; }
+        public double Proteins { get; set; }
+        public double Fats { get; set; }
+        public double Carbohydrates { get; set; }
+    }
 
-public class MealDto
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public string MealType { get; set; }
-    public double TotalCalories { get; set; }
-}
+    public class MealDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public string MealType { get; set; }
+        public double TotalCalories { get; set; }
+    }
 
-public class MealEntryDto
-{
-    public int Id { get; set; }
-    public int MealId { get; set; }
-    public int ProductId { get; set; }
-    public double Quantity { get; set; }
-    public double Calories { get; set; }
-}
+    public class MealEntryDto
+    {
+        public int Id { get; set; }
+        public int MealId { get; set; }
+        public int ProductId { get; set; }
+        public double Quantity { get; set; }
+        public double Calories { get; set; }
+    }
 
-public class CaloriesBurnedDto
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public double Burned { get; set; }
-}
+    public class CaloriesBurnedDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public double Burned { get; set; }
+    }
 
-public class DailyReportDto
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public double TotalCaloriesConsumed { get; set; }
-    public double TotalCaloriesBurned { get; set; }
-    public double CalorieBalance { get; set; }
-}
+    public class DailyReportDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public double TotalCaloriesConsumed { get; set; }
+        public double TotalCaloriesBurned { get; set; }
+        public double CalorieBalance { get; set; }
+    }
 
