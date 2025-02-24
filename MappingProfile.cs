@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-
+using practica.DTO;
 public class MappingProfile : Profile
 {
     public MappingProfile()
@@ -8,7 +8,6 @@ public class MappingProfile : Profile
         CreateMap<Product, ProductDto>().ReverseMap();
         CreateMap<Meal, MealDto>().ReverseMap();
         CreateMap<MealEntry, MealEntryDto>().ReverseMap();
-        CreateMap<CaloriesBurned, CaloriesBurnedDto>().ReverseMap();
         CreateMap<DailyReport, DailyReportDto>().ReverseMap();
     }
 }

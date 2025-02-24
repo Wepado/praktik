@@ -11,23 +11,64 @@
         <input type="text" id="username" placeholder="Имя" required>
         <input type="email" id="email" placeholder="Email" required>
         <input type="password" id="password" placeholder="Пароль" required>
+        <input type="number" id="age" placeholder="Возраст" required>
+        <input type="number" id="weight" placeholder="Вес (кг)" required>
+        <input type="number" id="height" placeholder="Рост (см)" required>
+        <select id="gender" required>
+            <option value="" disabled selected>Выберите пол</option>
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+        </select>
+        <select id="activityLevel" required>
+            <option value="" disabled selected>Уровень активности</option>
+            <option value="sedentary">Минимальная</option>
+            <option value="lightly_active">Легкая</option>
+            <option value="moderately_active">Средняя</option>
+            <option value="very_active">Высокая</option>
+            <option value="super_active">Экстремальная</option>
+        </select>
+        <input type="number" id="dailyCalorieGoal" placeholder="Целевая норма калорий (ккал)" required>
         <button type="submit">Зарегистрироваться</button>
     </form>
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                age: parseInt(document.getElementById('age').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                height: parseFloat(document.getElementById('height').value),
+                gender: document.getElementById('gender').value,
+                activityLevel: document.getElementById('activityLevel').value,
+                dailyCalorieGoal: parseFloat(document.getElementById('dailyCalorieGoal').value)
+            };
+
             const res = await fetch('https://localhost:7007/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('username').value,
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value,
-                    age: 25, weight: 70, height: 175, gender: "male", activityLevel: "active", dailyCalorieGoal: 2000
-                })
+                body: JSON.stringify(userData)
             });
-            alert(await res.text());
+
+            const result = await res.json();  // Получаем ответ в формате JSON
+
+            console.log("Ответ с сервера:", result);  // Логируем ответ от сервера
+
+            if (res.ok) {
+                // Сохраняем данные в localStorage
+                localStorage.setItem('token', result.token);  // Сохраняем токен
+                localStorage.setItem('userId', result.userId);  // Сохраняем userId
+                localStorage.setItem('username', result.username);  // Сохраняем username
+
+                alert('Регистрация успешна!');
+                window.location.href = "login.html"; // Перенаправляем на страницу логина
+            } else {
+                alert(result.message || 'Ошибка регистрации');
+            }
         });
     </script>
+    
 </body>
 </html>

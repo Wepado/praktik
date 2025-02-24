@@ -3,37 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль</title>
+    <title>Профиль пользователя</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+
+        #profile-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #greeting {
+            margin-bottom: 20px;
+        }
+
+        .meal-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .meal-column {
+            width: 22%;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+            .meal-column h3 {
+                text-align: center;
+            }
+
+        .meal-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+            .meal-list li {
+                padding: 8px 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+        .meal-select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+            button:hover {
+                background-color: #45a049;
+            }
+
+        .logout-btn {
+            background-color: #d9534f;
+        }
+
+            .logout-btn:hover {
+                background-color: #c9302c;
+            }
+
+        .total-calories {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Профиль</h2>
-    <p id="userData">Загрузка...</p>
-    <button onclick="logout()">Выйти</button>
+    <div id="profile-container">
+        <div id="greeting">
+            <h1>Привет, <span id="username"></span>!</h1>
+            <p id="userInfo">Загрузка...</p>
+        </div>
+
+        <div class="meal-container">
+            <div class="meal-column">
+                <h3>Завтрак</h3>
+                <select id="breakfast-select" class="meal-select"></select>
+                <button onclick="addProductToMeal('Завтрак')">Добавить</button>
+                <ul id="breakfast-list" class="meal-list"></ul>
+                <div id="breakfast-calories">Калории: 0</div>
+            </div>
+
+            <div class="meal-column">
+                <h3>Обед</h3>
+                <select id="lunch-select" class="meal-select"></select>
+                <button onclick="addProductToMeal('Обед')">Добавить</button>
+                <ul id="lunch-list" class="meal-list"></ul>
+                <div id="lunch-calories">Калории: 0</div>
+            </div>
+
+            <div class="meal-column">
+                <h3>Ужин</h3>
+                <select id="dinner-select" class="meal-select"></select>
+                <button onclick="addProductToMeal('Ужин')">Добавить</button>
+                <ul id="dinner-list" class="meal-list"></ul>
+                <div id="dinner-calories">Калории: 0</div>
+            </div>
+
+            <div class="meal-column">
+                <h3>Перекус</h3>
+                <select id="snack-select" class="meal-select"></select>
+                <button onclick="addProductToMeal('Перекус')">Добавить</button>
+                <ul id="snack-list" class="meal-list"></ul>
+                <div id="snack-calories">Калории: 0</div>
+            </div>
+        </div>
+
+        <div class="total-calories" id="total-calories">Итоговые калории: 0</div>
+
+        <button id="logout" class="logout-btn">Выйти</button>
+    </div>
+
     <script>
-        async function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
+        const apiUrl = "https://localhost:7007";
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const userId = localStorage.getItem("userId");
+            const username = localStorage.getItem("username");
+
+            if (!userId || !username) {
+                window.location.href = "login.html";
                 return;
             }
-            const res = await fetch('https://localhost:7007/users', {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const users = await res.json();
-                document.getElementById('userData').innerText = `Вы вошли как: ${users[0].username}`;
-            } else {
-                alert('Ошибка авторизации');
-                localStorage.removeItem('token');
-                window.location.href = 'login.html';
+
+            document.getElementById("username").textContent = username;
+            document.getElementById("userInfo").textContent = `Ваш ID: ${userId}, Имя: ${username}`;
+
+            const products = await fetchProducts();
+            fillProductSelects(products);
+        });
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${apiUrl}/products`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                return response.ok ? await response.json() : [];
+            } catch (error) {
+                console.error('Ошибка при загрузке продуктов:', error);
+                return [];
             }
         }
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
+
+        function fillProductSelects(products) {
+            document.querySelectorAll('.meal-select').forEach(select => {
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = product.name;
+                    select.appendChild(option);
+                });
+            });
         }
-        checkAuth();
+
+        async function addProductToMeal(mealType) {
+            let productId, mealList, calorieDisplay;
+
+            if (mealType === 'Завтрак') {
+                productId = document.getElementById('breakfast-select').value;
+                mealList = document.getElementById('breakfast-list');
+                calorieDisplay = document.getElementById('breakfast-calories');
+            } else if (mealType === 'Обед') {
+                productId = document.getElementById('lunch-select').value;
+                mealList = document.getElementById('lunch-list');
+                calorieDisplay = document.getElementById('lunch-calories');
+            } else if (mealType === 'Ужин') {
+                productId = document.getElementById('dinner-select').value;
+                mealList = document.getElementById('dinner-list');
+                calorieDisplay = document.getElementById('dinner-calories');
+            } else if (mealType === 'Перекус') {
+                productId = document.getElementById('snack-select').value;
+                mealList = document.getElementById('snack-list');
+                calorieDisplay = document.getElementById('snack-calories');
+            }
+
+            if (!productId) {
+                alert('Выберите продукт!');
+                return;
+            }
+
+            const product = await getProductById(productId);
+
+            if (product) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<span>${product.name}</span>`;
+                mealList.appendChild(listItem);
+
+                const currentCalories = parseInt(calorieDisplay.innerText.replace('Калории: ', ''), 10);
+                calorieDisplay.innerText = `Калории: ${currentCalories + product.calories}`;
+            }
+        }
+
+        async function getProductById(productId) {
+            try {
+                const response = await fetch(`${apiUrl}/products/${productId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                return response.ok ? await response.json() : null;
+            } catch (error) {
+                console.error('Ошибка:', error);
+                return null;
+            }
+        }
+
+        document.getElementById("logout").addEventListener("click", () => {
+            localStorage.clear();
+            window.location.href = "login.html";
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить продукт</title>
+</head>
+<body>
+    <h2>Добавление продукта</h2>
+    <form id="addProductForm">
+        <input type="text" id="name" placeholder="Название продукта" required>
+        <input type="number" id="calories" placeholder="Калории (ккал)" step="0.1" required>
+        <input type="number" id="proteins" placeholder="Белки (г)" step="0.1" required>
+        <input type="number" id="fats" placeholder="Жиры (г)" step="0.1" required>
+        <input type="number" id="carbohydrates" placeholder="Углеводы (г)" step="0.1" required>
+        <button type="submit">Добавить продукт</button>
+    </form>
+
+    <script>
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const calories = parseFloat(document.getElementById('calories').value);
+            const proteins = parseFloat(document.getElementById('proteins').value);
+            const fats = parseFloat(document.getElementById('fats').value);
+            const carbohydrates = parseFloat(document.getElementById('carbohydrates').value);
+
+            if (!name || calories <= 0 || proteins < 0 || fats < 0 || carbohydrates < 0) {
+                alert("Некорректные данные. Проверьте вводимые значения!");
+                return;
+            }
+
+            const token = localStorage.getItem('token'); // Достаем JWT токен, если есть
+            const userId = localStorage.getItem('userId'); // Получаем userId, если нужно
+
+            const productData = {
+                name,
+                calories,
+                proteins,
+                fats,
+                carbohydrates,
+                userId: userId ? parseInt(userId) : 0  // Если нужен UserId
+            };
+
+            try {
+                const res = await fetch('https://localhost:7007/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Добавляем авторизацию
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(result.message || "Ошибка при добавлении продукта!");
+                }
+
+                alert("Продукт успешно добавлен!");
+                window.location.href = "dashboard.html"; // Переход обратно на дашборд
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

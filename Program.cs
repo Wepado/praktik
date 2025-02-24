@@ -23,7 +23,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-var key = "МойСекретныйКлюч123"; // Секретный ключ для подписи токена (лучше хранить в `appsettings.json`)
+var key = "МойСекретныйКлюч123"; // Секретный ключ для подписи токена (лучше хранить в appsettings.json)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -56,7 +56,13 @@ app.MapPost("/register", async (User user, ApplicationDbContext db) =>
 
     db.Users.Add(user);
     await db.SaveChangesAsync();
-    return Results.Ok("Пользователь зарегистрирован!");
+
+    // Возвращаем Id, Username и Token (если ты его добавляешь на сервере)
+    return Results.Ok(new
+    {
+        userId = user.Id,  // передаем Id
+        username = user.Username,  // передаем username
+    });
 });
 
 app.MapPost("/login", async (UserLoginDto loginDto, ApplicationDbContext db) =>
@@ -211,6 +217,8 @@ app.MapDelete("/meals/{id}", async (int id, ApplicationDbContext db) =>
 }).RequireAuthorization(); // защищаем
 
 // *** MEAL ENTRIES ***
+
+
 app.MapGet("/mealentries", async (ApplicationDbContext db) => await db.MealEntries.ToListAsync())
     .RequireAuthorization(); // защищаем
 
@@ -236,31 +244,7 @@ app.MapDelete("/mealentries/{id}", async (int id, ApplicationDbContext db) =>
     return Results.NoContent();
 }).RequireAuthorization(); // защищаем
 
-// *** CALORIES BURNED ***
-app.MapGet("/caloriesburned", async (ApplicationDbContext db) => await db.CaloriesBurneds.ToListAsync())
-    .RequireAuthorization(); // защищаем
 
-app.MapPost("/caloriesburned", async (CaloriesBurned caloriesBurned, ApplicationDbContext db) =>
-{
-    if (caloriesBurned.BURNED <= 0)
-    {
-        return Results.BadRequest(new { message });
-    }
-
-    db.CaloriesBurneds.Add(caloriesBurned);
-    await db.SaveChangesAsync();
-    return Results.Created($"/caloriesburned/{caloriesBurned.Id}", caloriesBurned);
-}).RequireAuthorization(); // защищаем
-
-app.MapDelete("/caloriesburned/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var caloriesBurned = await db.CaloriesBurneds.FindAsync(id);
-    if (caloriesBurned is null) return Results.NotFound();
-
-    db.CaloriesBurneds.Remove(caloriesBurned);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
 
 // *** DAILY REPORTS ***
 app.MapGet("/dailyreports", async (ApplicationDbContext db) => await db.DailyReports.ToListAsync())
@@ -292,121 +276,54 @@ app.Run();
 
 // Models
 public class User
-    {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public int Age { get; set; }
-        public double Weight { get; set; }
-        public double Height { get; set; }
-        public string Gender { get; set; }
-        public string ActivityLevel { get; set; }
-        public double DailyCalorieGoal { get; set; }
-    }
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public int Age { get; set; }
+    public double Weight { get; set; }
+    public double Height { get; set; }
+    public string Gender { get; set; }
+    public string ActivityLevel { get; set; }
+    public double DailyCalorieGoal { get; set; }
+}
 
-    public class Product
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public double Calories { get; set; }
-        public double Proteins { get; set; }
-        public double Fats { get; set; }
-        public double Carbohydrates { get; set; }
-    }
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public double Calories { get; set; }
+    public double Proteins { get; set; }
+    public double Fats { get; set; }
+    public double Carbohydrates { get; set; }
+}
 
-    public class Meal
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public string MealType { get; set; }
-        public double TotalCalories { get; set; }
-    }
+public class Meal
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public DateTime Date { get; set; }
+    public string MealType { get; set; }
+    public double TotalCalories { get; set; }
+}
 
-    public class MealEntry
-    {
-        public int Id { get; set; }
-        public int MealId { get; set; }
-        public int ProductId { get; set; }
-        public double Quantity { get; set; }
-        public double Calories { get; set; }
-    }
+public class MealEntry
+{
+    public int Id { get; set; }
+    public int MealId { get; set; }
+    public int ProductId { get; set; }
+    public double Quantity { get; set; }
+    public double Calories { get; set; }
+}
 
-    public class CaloriesBurned
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double BURNED { get; set; }
-    }
 
-    public class DailyReport
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double TotalCaloriesConsumed { get; set; }
-        public double TotalCaloriesBurned { get; set; }
-        public double CalorieBalance { get; set; }
-    }
-
-    public class UserDto
-    {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public int Age { get; set; }
-        public double Weight { get; set; }
-        public double Height { get; set; }
-        public string Gender { get; set; }
-        public string ActivityLevel { get; set; }
-        public double DailyCalorieGoal { get; set; }
-    }
-
-    public class ProductDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public double Calories { get; set; }
-        public double Proteins { get; set; }
-        public double Fats { get; set; }
-        public double Carbohydrates { get; set; }
-    }
-
-    public class MealDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public string MealType { get; set; }
-        public double TotalCalories { get; set; }
-    }
-
-    public class MealEntryDto
-    {
-        public int Id { get; set; }
-        public int MealId { get; set; }
-        public int ProductId { get; set; }
-        public double Quantity { get; set; }
-        public double Calories { get; set; }
-    }
-
-    public class CaloriesBurnedDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double Burned { get; set; }
-    }
-
-    public class DailyReportDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double TotalCaloriesConsumed { get; set; }
-        public double TotalCaloriesBurned { get; set; }
-        public double CalorieBalance { get; set; }
-    }
-
+public class DailyReport
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public DateTime Date { get; set; }
+    public double TotalCaloriesConsumed { get; set; }
+    public double TotalCaloriesBurned { get; set; }
+    public double CalorieBalance { get; set; }
+}
