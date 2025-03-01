@@ -120,19 +120,20 @@ app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationDbContext 
     var user = await db.Users.FindAsync(id);
     if (user is null) return Results.NotFound();
 
-    user.Username = updatedUser.Username;
-    user.Email = updatedUser.Email;
-    user.Password = updatedUser.Password;
-    user.Age = updatedUser.Age;
-    user.Weight = updatedUser.Weight;
-    user.Height = updatedUser.Height;
-    user.Gender = updatedUser.Gender;
-    user.ActivityLevel = updatedUser.ActivityLevel;
-    user.DailyCalorieGoal = updatedUser.DailyCalorieGoal;
+    // Обновляем только те поля, которые пришли в запросе
+    if (updatedUser.Username != null) user.Username = updatedUser.Username;
+    if (updatedUser.Email != null) user.Email = updatedUser.Email;
+    if (updatedUser.Password != null) user.Password = updatedUser.Password;
+    if (updatedUser.Age > 0) user.Age = updatedUser.Age;
+    if (updatedUser.Weight > 0) user.Weight = updatedUser.Weight;
+    if (updatedUser.Height > 0) user.Height = updatedUser.Height;
+    if (updatedUser.Gender != null) user.Gender = updatedUser.Gender;
+    if (updatedUser.ActivityLevel != null) user.ActivityLevel = updatedUser.ActivityLevel;
+    if (updatedUser.DailyCalorieGoal > 0) user.DailyCalorieGoal = updatedUser.DailyCalorieGoal;
 
     await db.SaveChangesAsync();
     return Results.NoContent();
-}).RequireAuthorization(); // защищаем
+}).RequireAuthorization();
 
 app.MapDelete("/users/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -152,19 +153,28 @@ app.MapGet("/products/{id}", async (int id, ApplicationDbContext db) =>
     await db.Products.FindAsync(id) is Product product ? Results.Ok(product) : Results.NotFound())
     .RequireAuthorization(); // защищаем
 
-app.MapPost("/products", async (Product product, ApplicationDbContext db) =>
+app.MapPost("/products", async (Product product, ClaimsPrincipal user, ApplicationDbContext db) =>
 {
+    // Получаем Claim с идентификатором пользователя
+    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+    if (userIdClaim == null)
+    {
+        return Results.Unauthorized();
+    }
+    int userId = int.Parse(userIdClaim.Value);
+    product.UserId = userId;  // Привязываем продукт к текущему пользователю
+
+    // Проверяем входные данные
     if (string.IsNullOrWhiteSpace(product.Name) || product.Calories <= 0 ||
         product.Proteins < 0 || product.Fats < 0 || product.Carbohydrates < 0)
     {
-        return Results.BadRequest(new { message });
+        return Results.BadRequest(new { message = "Некорректные данные" });
     }
 
     db.Products.Add(product);
     await db.SaveChangesAsync();
     return Results.Created($"/products/{product.Id}", product);
-}).RequireAuthorization(); // защищаем
-
+}).RequireAuthorization();
 app.MapPut("/products/{id}", async (int id, Product updatedProduct, ApplicationDbContext db) =>
 {
     var product = await db.Products.FindAsync(id);
@@ -196,7 +206,7 @@ app.MapGet("/meals", async (ApplicationDbContext db) => await db.Meals.ToListAsy
 
 app.MapPost("/meals", async (Meal meal, ApplicationDbContext db) =>
 {
-    if (meal.UserId <= 0 || meal.TotalCalories <= 0 || string.IsNullOrWhiteSpace(meal.MealType))
+    if (meal.UserId <= 0  || string.IsNullOrWhiteSpace(meal.MealType))
     {
         return Results.BadRequest(new { message });
     }
@@ -287,6 +297,7 @@ public class User
     public string Gender { get; set; }
     public string ActivityLevel { get; set; }
     public double DailyCalorieGoal { get; set; }
+    public List<Product> Products { get; set; } = new List<Product>();
 }
 
 public class Product
@@ -297,15 +308,27 @@ public class Product
     public double Proteins { get; set; }
     public double Fats { get; set; }
     public double Carbohydrates { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; }
 }
 
 public class Meal
 {
     public int Id { get; set; }
+
+    // Какому пользователю принадлежит данный приём пищи
     public int UserId { get; set; }
-    public DateTime Date { get; set; }
+    public User User { get; set; }
+
+    // Тип приёма пищи (например, "Завтрак", "Обед", "Ужин", "Перекус")
     public string MealType { get; set; }
-    public double TotalCalories { get; set; }
+
+    // Время, когда был совершен приём пищи
+    public DateTime MealTime { get; set; }
+
+    // Ссылка на продукт, выбранный пользователем для данного приёма пищи
+    public int ProductId { get; set; }
+    public Product Product { get; set; }
 }
 
 public class MealEntry

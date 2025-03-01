@@ -7,20 +7,58 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            background-color: #1a1a1a; /* Серо-черный фон */
             padding: 20px;
+            color: #ecf0f1; /* Светлый текст */
         }
 
         #profile-container {
-            background-color: #fff;
+            background-color: #2d2d2d; /* Темный фон контейнера */
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Темная тень */
         }
 
         #greeting {
             margin-bottom: 20px;
         }
+
+        .user-info {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .edit-form {
+            display: none; /* Скрываем форму по умолчанию */
+            margin-top: 20px;
+        }
+
+            .edit-form input {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #444; /* Темная граница */
+                border-radius: 4px;
+                font-size: 16px;
+                background-color: #3d3d3d; /* Темный фон */
+                color: #ecf0f1; /* Светлый текст */
+            }
+
+            .edit-form button {
+                background-color: #1e8449; /* Темно-зеленая кнопка */
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+                border-radius: 4px;
+                margin-top: 10px;
+                transition: background-color 0.3s ease; /* Плавное изменение цвета */
+            }
+
+                .edit-form button:hover {
+                    background-color: #186a3b; /* Темнее при наведении */
+                }
 
         .meal-container {
             display: flex;
@@ -30,14 +68,15 @@
 
         .meal-column {
             width: 22%;
-            background-color: #f1f1f1;
+            background-color: #3d3d3d; /* Темный фон */
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Темная тень */
         }
 
             .meal-column h3 {
                 text-align: center;
+                color: #ecf0f1; /* Светлый текст */
             }
 
         .meal-list {
@@ -47,7 +86,11 @@
 
             .meal-list li {
                 padding: 8px 0;
-                border-bottom: 1px solid #ddd;
+                border-bottom: 1px solid #444; /* Темная граница */
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: #ecf0f1; /* Светлый текст */
             }
 
         .meal-select {
@@ -56,11 +99,14 @@
             margin-bottom: 10px;
             border-radius: 4px;
             font-size: 16px;
+            background-color: #3d3d3d; /* Темный фон */
+            color: #ecf0f1; /* Светлый текст */
+            border: 1px solid #444; /* Темная граница */
         }
 
         button {
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #1e8449; /* Темно-зеленая кнопка */
             color: white;
             border: none;
             cursor: pointer;
@@ -68,18 +114,19 @@
             width: 100%;
             margin-top: 10px;
             border-radius: 4px;
+            transition: background-color 0.3s ease; /* Плавное изменение цвета */
         }
 
             button:hover {
-                background-color: #45a049;
+                background-color: #186a3b; /* Темнее при наведении */
             }
 
         .logout-btn {
-            background-color: #d9534f;
+            background-color: #d9534f; /* Красная кнопка */
         }
 
             .logout-btn:hover {
-                background-color: #c9302c;
+                background-color: #c9302c; /* Темнее при наведении */
             }
 
         .total-calories {
@@ -87,6 +134,70 @@
             font-weight: bold;
             text-align: center;
             margin-top: 20px;
+            color: #ecf0f1; /* Светлый текст */
+        }
+
+        .calorie-goal {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: #bdc3c7; /* Светлый текст */
+        }
+
+        .add-product-btn {
+            background-color: #0275d8; /* Синяя кнопка */
+            margin-bottom: 20px;
+        }
+
+            .add-product-btn:hover {
+                background-color: #025aa5; /* Темнее при наведении */
+            }
+
+        /* Стили для кнопки "Удалить" */
+        .delete-btn {
+            background-color: transparent;
+            color: #d9534f; /* Красный цвет */
+            border: none;
+            padding: 0;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            line-height: 1;
+        }
+
+            .delete-btn:hover {
+                color: #c9302c; /* Темнее при наведении */
+            }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #d9534f; /* Красный фон */
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+            .notification .close-btn {
+                background-color: transparent;
+                border: none;
+                color: white;
+                font-size: 18px;
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                cursor: pointer;
+            }
+
+        .nutrients {
+            font-size: 14px;
+            color: #bdc3c7; /* Светлый текст */
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -97,6 +208,25 @@
             <p id="userInfo">Загрузка...</p>
         </div>
 
+        <div class="user-info">
+            <p><strong>Возраст:</strong> <span id="user-age"></span></p>
+            <p><strong>Вес:</strong> <span id="user-weight"></span> кг</p>
+            <p><strong>Рост:</strong> <span id="user-height"></span> см</p>
+            <p><strong>Пол:</strong> <span id="user-gender"></span></p>
+            <button id="edit-profile-btn">Редактировать профиль</button>
+        </div>
+
+        <!-- Форма редактирования профиля -->
+        <div class="edit-form" id="edit-profile-form">
+            <h3>Редактировать профиль</h3>
+            <input type="number" id="edit-age" placeholder="Возраст">
+            <input type="number" id="edit-weight" placeholder="Вес (кг)">
+            <input type="number" id="edit-height" placeholder="Рост (см)">
+            <button onclick="saveProfileChanges()">Сохранить изменения</button>
+        </div>
+
+        <button class="add-product-btn" onclick="window.location.href='addproduct.html'">Добавить продукт</button>
+
         <div class="meal-container">
             <div class="meal-column">
                 <h3>Завтрак</h3>
@@ -104,6 +234,7 @@
                 <button onclick="addProductToMeal('Завтрак')">Добавить</button>
                 <ul id="breakfast-list" class="meal-list"></ul>
                 <div id="breakfast-calories">Калории: 0</div>
+                <div id="breakfast-nutrients" class="nutrients">Белки: 0г, Жиры: 0г, Углеводы: 0г</div>
             </div>
 
             <div class="meal-column">
@@ -112,6 +243,7 @@
                 <button onclick="addProductToMeal('Обед')">Добавить</button>
                 <ul id="lunch-list" class="meal-list"></ul>
                 <div id="lunch-calories">Калории: 0</div>
+                <div id="lunch-nutrients" class="nutrients">Белки: 0г, Жиры: 0г, Углеводы: 0г</div>
             </div>
 
             <div class="meal-column">
@@ -120,6 +252,7 @@
                 <button onclick="addProductToMeal('Ужин')">Добавить</button>
                 <ul id="dinner-list" class="meal-list"></ul>
                 <div id="dinner-calories">Калории: 0</div>
+                <div id="dinner-nutrients" class="nutrients">Белки: 0г, Жиры: 0г, Углеводы: 0г</div>
             </div>
 
             <div class="meal-column">
@@ -128,47 +261,163 @@
                 <button onclick="addProductToMeal('Перекус')">Добавить</button>
                 <ul id="snack-list" class="meal-list"></ul>
                 <div id="snack-calories">Калории: 0</div>
+                <div id="snack-nutrients" class="nutrients">Белки: 0г, Жиры: 0г, Углеводы: 0г</div>
             </div>
         </div>
 
-        <div class="total-calories" id="total-calories">Итоговые калории: 0</div>
+        <div class="total-calories">
+            <span id="total-calories">Итоговые калории: 0</span>
+            <span id="daily-calorie-goal" class="calorie-goal"></span>
+        </div>
 
         <button id="logout" class="logout-btn">Выйти</button>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        Норма калорий набрана!
+        <button class="close-btn" onclick="closeNotification()">×</button>
     </div>
 
     <script>
         const apiUrl = "https://localhost:7007";
 
+        function validateProfileData(age, weight, height) {
+            if (age < 0 || age > 120) {
+                alert("Возраст должен быть в диапазоне от 0 до 120 лет.");
+                return false;
+            }
+            if (weight < 10 || weight > 500) {
+                alert("Вес должен быть в диапазоне от 10 до 500 кг.");
+                return false;
+            }
+            if (height < 50 || height > 300) {
+                alert("Рост должен быть в диапазоне от 50 до 300 см.");
+                return false;
+            }
+            return true;
+        }
+
         document.addEventListener("DOMContentLoaded", async function () {
             const userId = localStorage.getItem("userId");
-            const username = localStorage.getItem("username");
+            const token = localStorage.getItem("token");
 
-            if (!userId || !username) {
+            if (!userId || !token) {
                 window.location.href = "login.html";
                 return;
             }
 
-            document.getElementById("username").textContent = username;
-            document.getElementById("userInfo").textContent = `Ваш ID: ${userId}, Имя: ${username}`;
+            // Получаем данные пользователя с сервера
+            try {
+                const response = await fetch(`${apiUrl}/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-            const products = await fetchProducts();
-            fillProductSelects(products);
+                if (!response.ok) {
+                    throw new Error("Ошибка получения данных пользователя");
+                }
+
+                const user = await response.json();
+
+                // Отображаем данные пользователя
+                document.getElementById("username").textContent = user.username;
+                document.getElementById("userInfo").textContent = `Ваш ID: ${user.id}, Имя: ${user.username}`;
+                document.getElementById("user-age").textContent = user.age;
+                document.getElementById("user-weight").textContent = user.weight;
+                document.getElementById("user-height").textContent = user.height;
+                document.getElementById("user-gender").textContent = user.gender === "male" ? "Мужской" : "Женский";
+
+                document.getElementById("daily-calorie-goal").textContent =
+                    user.dailyCalorieGoal
+                        ? `Цель калорий: ${user.dailyCalorieGoal}`
+                        : "Цель калорий не указана";
+
+                const products = await fetchProducts();
+                fillProductSelects(products);
+
+                // Загружаем сохраненные данные из localStorage
+                loadMealsFromLocalStorage();
+            } catch (error) {
+                console.error("Ошибка:", error);
+            }
         });
 
+        // Кнопка "Редактировать профиль"
+        document.getElementById("edit-profile-btn").addEventListener("click", function () {
+            const editForm = document.getElementById("edit-profile-form");
+            editForm.style.display = editForm.style.display === "none" ? "block" : "none";
+        });
+
+        // Функция для сохранения изменений профиля
+        async function saveProfileChanges() {
+            const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("token");
+
+            const age = document.getElementById("edit-age").value;
+            const weight = document.getElementById("edit-weight").value;
+            const height = document.getElementById("edit-height").value;
+
+            if (!age || !weight || !height) {
+                alert("Заполните все поля!");
+                return;
+            }
+
+            if (!validateProfileData(parseInt(age), parseFloat(weight), parseFloat(height))) {
+                return;
+            }
+
+            const updatedUser = {
+                age: parseInt(age),
+                weight: parseFloat(weight),
+                height: parseFloat(height)
+            };
+
+            try {
+                const response = await fetch(`${apiUrl}/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updatedUser)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Ошибка при обновлении данных пользователя");
+                }
+
+                // Обновляем данные на странице
+                document.getElementById("user-age").textContent = age;
+                document.getElementById("user-weight").textContent = weight;
+                document.getElementById("user-height").textContent = height;
+
+                alert("Данные успешно обновлены!");
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert("Не удалось обновить данные пользователя");
+            }
+        }
+
+        // Функция для загрузки продуктов
         async function fetchProducts() {
             try {
                 const response = await fetch(`${apiUrl}/products`, {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
+                const products = await response.json();
 
-                return response.ok ? await response.json() : [];
+                // Фильтруем продукты по userId
+                const userId = localStorage.getItem("userId");
+                return products.filter(product => product.userId === parseInt(userId));
             } catch (error) {
                 console.error('Ошибка при загрузке продуктов:', error);
                 return [];
             }
         }
 
+        // Функция для заполнения выпадающих списков продуктами
         function fillProductSelects(products) {
             document.querySelectorAll('.meal-select').forEach(select => {
                 products.forEach(product => {
@@ -180,25 +429,30 @@
             });
         }
 
+        // Функция для добавления продукта в прием пищи
         async function addProductToMeal(mealType) {
-            let productId, mealList, calorieDisplay;
+            let productId, mealList, calorieDisplay, nutrientDisplay;
 
             if (mealType === 'Завтрак') {
                 productId = document.getElementById('breakfast-select').value;
                 mealList = document.getElementById('breakfast-list');
                 calorieDisplay = document.getElementById('breakfast-calories');
+                nutrientDisplay = document.getElementById('breakfast-nutrients');
             } else if (mealType === 'Обед') {
                 productId = document.getElementById('lunch-select').value;
                 mealList = document.getElementById('lunch-list');
                 calorieDisplay = document.getElementById('lunch-calories');
+                nutrientDisplay = document.getElementById('lunch-nutrients');
             } else if (mealType === 'Ужин') {
                 productId = document.getElementById('dinner-select').value;
                 mealList = document.getElementById('dinner-list');
                 calorieDisplay = document.getElementById('dinner-calories');
+                nutrientDisplay = document.getElementById('dinner-nutrients');
             } else if (mealType === 'Перекус') {
                 productId = document.getElementById('snack-select').value;
                 mealList = document.getElementById('snack-list');
                 calorieDisplay = document.getElementById('snack-calories');
+                nutrientDisplay = document.getElementById('snack-nutrients');
             }
 
             if (!productId) {
@@ -210,14 +464,77 @@
 
             if (product) {
                 const listItem = document.createElement('li');
-                listItem.innerHTML = `<span>${product.name}</span>`;
+                listItem.innerHTML = `
+                        <span>${product.name}</span>
+                        <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
+                    `;
+                listItem.dataset.calories = product.calories;
+                listItem.dataset.proteins = product.proteins;
+                listItem.dataset.fats = product.fats;
+                listItem.dataset.carbohydrates = product.carbohydrates;
                 mealList.appendChild(listItem);
 
-                const currentCalories = parseInt(calorieDisplay.innerText.replace('Калории: ', ''), 10);
-                calorieDisplay.innerText = `Калории: ${currentCalories + product.calories}`;
+                updateCalories(calorieDisplay, product.calories);
+                updateNutrients(nutrientDisplay, product.proteins, product.fats, product.carbohydrates);
+                updateTotalCalories(); // Обновляем общие калории
+
+                // Сохраняем данные в localStorage
+                saveMealsToLocalStorage();
             }
         }
 
+        // Функция для удаления продукта из приема пищи
+        function removeProductFromMeal(button, calories, proteins, fats, carbohydrates, mealType) {
+            // Проверяем, что родительский элемент существует
+            if (!button || !button.parentElement) {
+                console.error("Элемент для удаления не найден.");
+                return;
+            }
+
+            const listItem = button.parentElement; // Находим родительский элемент (li)
+            listItem.remove(); // Удаляем элемент из списка
+
+            // Находим элемент для отображения калорий и нутриентов
+            let calorieDisplay, nutrientDisplay;
+            if (mealType === 'Завтрак') {
+                calorieDisplay = document.getElementById('breakfast-calories');
+                nutrientDisplay = document.getElementById('breakfast-nutrients');
+            } else if (mealType === 'Обед') {
+                calorieDisplay = document.getElementById('lunch-calories');
+                nutrientDisplay = document.getElementById('lunch-nutrients');
+            } else if (mealType === 'Ужин') {
+                calorieDisplay = document.getElementById('dinner-calories');
+                nutrientDisplay = document.getElementById('dinner-nutrients');
+            } else if (mealType === 'Перекус') {
+                calorieDisplay = document.getElementById('snack-calories');
+                nutrientDisplay = document.getElementById('snack-nutrients');
+            }
+
+            // Проверяем, что calorieDisplay и nutrientDisplay существуют
+            if (!calorieDisplay || !nutrientDisplay) {
+                console.error("Элемент для отображения калорий или нутриентов не найден.");
+                return;
+            }
+
+            // Обновляем калории
+            const currentCalories = parseInt(calorieDisplay.innerText.replace('Калории: ', ''), 10);
+            calorieDisplay.innerText = `Калории: ${currentCalories - calories}`;
+
+            // Обновляем нутриенты
+            const currentNutrients = nutrientDisplay.innerText.match(/\d+/g);
+            const currentProteins = parseInt(currentNutrients[0], 10);
+            const currentFats = parseInt(currentNutrients[1], 10);
+            const currentCarbs = parseInt(currentNutrients[2], 10);
+
+            nutrientDisplay.innerText = `Белки: ${currentProteins - proteins}г, Жиры: ${currentFats - fats}г, Углеводы: ${currentCarbs - carbohydrates}г`;
+
+            updateTotalCalories(); // Обновляем общие калории
+
+            // Сохраняем данные в localStorage
+            saveMealsToLocalStorage();
+        }
+
+        // Функция для получения продукта по ID
         async function getProductById(productId) {
             try {
                 const response = await fetch(`${apiUrl}/products/${productId}`, {
@@ -232,6 +549,104 @@
             }
         }
 
+        // Функция для обновления калорий
+        function updateCalories(displayElement, value) {
+            const currentCalories = parseInt(displayElement.innerText.replace('Калории: ', ''), 10);
+            displayElement.innerText = `Калории: ${currentCalories + value}`;
+        }
+
+        // Функция для обновления нутриентов
+        function updateNutrients(displayElement, proteins, fats, carbohydrates) {
+            const currentNutrients = displayElement.innerText.match(/\d+/g);
+            const currentProteins = parseInt(currentNutrients[0], 10);
+            const currentFats = parseInt(currentNutrients[1], 10);
+            const currentCarbs = parseInt(currentNutrients[2], 10);
+
+            displayElement.innerText = `Белки: ${currentProteins + proteins}г, Жиры: ${currentFats + fats}г, Углеводы: ${currentCarbs + carbohydrates}г`;
+        }
+
+        // Функция для обновления общих калорий
+        function updateTotalCalories() {
+            let total = 0;
+            document.querySelectorAll('.meal-list li').forEach(item => {
+                total += parseInt(item.dataset.calories, 10);
+            });
+            document.getElementById('total-calories').innerText = `Итоговые калории: ${total}`;
+
+            // Проверяем достижение цели калорий
+            const calorieGoal = parseInt(document.getElementById("daily-calorie-goal").textContent.replace("Цель калорий: ", ""));
+            if (total > calorieGoal && calorieGoal > 0) {
+                showNotification();
+            }
+        }
+
+        // Функция для показа уведомления
+        function showNotification() {
+            document.getElementById("notification").style.display = "block";
+        }
+
+        // Функция для закрытия уведомления
+        function closeNotification() {
+            document.getElementById("notification").style.display = "none";
+        }
+
+        // Функция для сохранения данных о приемах пищи в localStorage
+        function saveMealsToLocalStorage() {
+            const meals = {
+                breakfast: [],
+                lunch: [],
+                dinner: [],
+                snack: []
+            };
+
+            // Собираем данные о продуктах в каждом приеме пищи
+            document.querySelectorAll('.meal-list li').forEach(item => {
+                const mealType = item.parentElement.id.replace('-list', '');
+                meals[mealType].push({
+                    name: item.querySelector('span').textContent,
+                    calories: parseInt(item.dataset.calories, 10),
+                    proteins: parseInt(item.dataset.proteins, 10),
+                    fats: parseInt(item.dataset.fats, 10),
+                    carbohydrates: parseInt(item.dataset.carbohydrates, 10)
+                });
+            });
+
+            // Сохраняем в localStorage
+            localStorage.setItem('meals', JSON.stringify(meals));
+        }
+
+        // Функция для загрузки данных о приемах пищи из localStorage
+        function loadMealsFromLocalStorage() {
+            const meals = JSON.parse(localStorage.getItem('meals'));
+
+            if (meals) {
+                Object.keys(meals).forEach(mealType => {
+                    const mealList = document.getElementById(`${mealType}-list`);
+                    const calorieDisplay = document.getElementById(`${mealType}-calories`);
+                    const nutrientDisplay = document.getElementById(`${mealType}-nutrients`);
+
+                    meals[mealType].forEach(product => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                                <span>${product.name}</span>
+                                <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
+                            `;
+                        listItem.dataset.calories = product.calories;
+                        listItem.dataset.proteins = product.proteins;
+                        listItem.dataset.fats = product.fats;
+                        listItem.dataset.carbohydrates = product.carbohydrates;
+                        mealList.appendChild(listItem);
+
+                        updateCalories(calorieDisplay, product.calories);
+                        updateNutrients(nutrientDisplay, product.proteins, product.fats, product.carbohydrates);
+                    });
+                });
+
+                updateTotalCalories(); // Обновляем общие калории
+            }
+        }
+
+        // Выход из системы
         document.getElementById("logout").addEventListener("click", () => {
             localStorage.clear();
             window.location.href = "login.html";
