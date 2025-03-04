@@ -28,12 +28,22 @@
             margin-bottom: 20px;
         }
 
+            .user-info p {
+                margin: 10px 0;
+                font-size: 16px;
+                color: #ecf0f1; /* Светлый текст */
+            }
+
+                .user-info p strong {
+                    color: #bdc3c7; /* Светлый текст для заголовков */
+                }
+
         .edit-form {
             display: none; /* Скрываем форму по умолчанию */
             margin-top: 20px;
         }
 
-            .edit-form input {
+            .edit-form input, .edit-form select {
                 width: 100%;
                 padding: 10px;
                 margin: 10px 0;
@@ -153,7 +163,6 @@
                 background-color: #025aa5; /* Темнее при наведении */
             }
 
-        /* Стили для кнопки "Удалить" */
         .delete-btn {
             background-color: transparent;
             color: #d9534f; /* Красный цвет */
@@ -169,7 +178,6 @@
                 color: #c9302c; /* Темнее при наведении */
             }
 
-        /* Notification Styles */
         .notification {
             position: fixed;
             top: 10px;
@@ -213,6 +221,7 @@
             <p><strong>Вес:</strong> <span id="user-weight"></span> кг</p>
             <p><strong>Рост:</strong> <span id="user-height"></span> см</p>
             <p><strong>Пол:</strong> <span id="user-gender"></span></p>
+            <p><strong>Уровень активности:</strong> <span id="user-activity-level"></span></p>
             <button id="edit-profile-btn">Редактировать профиль</button>
         </div>
 
@@ -222,6 +231,13 @@
             <input type="number" id="edit-age" placeholder="Возраст">
             <input type="number" id="edit-weight" placeholder="Вес (кг)">
             <input type="number" id="edit-height" placeholder="Рост (см)">
+            <select id="edit-activity-level">
+                <option value="sedentary">Минимальная</option>
+                <option value="lightly_active">Легкая</option>
+                <option value="moderately_active">Средняя</option>
+                <option value="very_active">Высокая</option>
+                <option value="super_active">Экстремальная</option>
+            </select>
             <button onclick="saveProfileChanges()">Сохранить изменения</button>
         </div>
 
@@ -327,6 +343,7 @@
                 document.getElementById("user-weight").textContent = user.weight;
                 document.getElementById("user-height").textContent = user.height;
                 document.getElementById("user-gender").textContent = user.gender === "male" ? "Мужской" : "Женский";
+                document.getElementById("user-activity-level").textContent = getActivityLevelLabel(user.activityLevel);
 
                 document.getElementById("daily-calorie-goal").textContent =
                     user.dailyCalorieGoal
@@ -343,6 +360,24 @@
             }
         });
 
+        // Функция для получения текстового значения уровня активности
+        function getActivityLevelLabel(activityLevel) {
+            switch (activityLevel) {
+                case "sedentary":
+                    return "Минимальная";
+                case "lightly_active":
+                    return "Легкая";
+                case "moderately_active":
+                    return "Средняя";
+                case "very_active":
+                    return "Высокая";
+                case "super_active":
+                    return "Экстремальная";
+                default:
+                    return "Не указано";
+            }
+        }
+
         // Кнопка "Редактировать профиль"
         document.getElementById("edit-profile-btn").addEventListener("click", function () {
             const editForm = document.getElementById("edit-profile-form");
@@ -357,8 +392,9 @@
             const age = document.getElementById("edit-age").value;
             const weight = document.getElementById("edit-weight").value;
             const height = document.getElementById("edit-height").value;
+            const activityLevel = document.getElementById("edit-activity-level").value;
 
-            if (!age || !weight || !height) {
+            if (!age || !weight || !height || !activityLevel) {
                 alert("Заполните все поля!");
                 return;
             }
@@ -370,7 +406,8 @@
             const updatedUser = {
                 age: parseInt(age),
                 weight: parseFloat(weight),
-                height: parseFloat(height)
+                height: parseFloat(height),
+                activityLevel: activityLevel
             };
 
             try {
@@ -391,6 +428,7 @@
                 document.getElementById("user-age").textContent = age;
                 document.getElementById("user-weight").textContent = weight;
                 document.getElementById("user-height").textContent = height;
+                document.getElementById("user-activity-level").textContent = getActivityLevelLabel(activityLevel);
 
                 alert("Данные успешно обновлены!");
             } catch (error) {
@@ -398,6 +436,7 @@
                 alert("Не удалось обновить данные пользователя");
             }
         }
+
 
         // Функция для загрузки продуктов
         async function fetchProducts() {
@@ -465,9 +504,9 @@
             if (product) {
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
-                        <span>${product.name}</span>
-                        <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
-                    `;
+                                    <span>${product.name}</span>
+                                    <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
+                                `;
                 listItem.dataset.calories = product.calories;
                 listItem.dataset.proteins = product.proteins;
                 listItem.dataset.fats = product.fats;
@@ -628,9 +667,9 @@
                     meals[mealType].forEach(product => {
                         const listItem = document.createElement('li');
                         listItem.innerHTML = `
-                                <span>${product.name}</span>
-                                <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
-                            `;
+                                            <span>${product.name}</span>
+                                            <button class="delete-btn" onclick="removeProductFromMeal(this, ${product.calories}, ${product.proteins}, ${product.fats}, ${product.carbohydrates}, '${mealType}')">×</button>
+                                        `;
                         listItem.dataset.calories = product.calories;
                         listItem.dataset.proteins = product.proteins;
                         listItem.dataset.fats = product.fats;
@@ -641,7 +680,7 @@
                         updateNutrients(nutrientDisplay, product.proteins, product.fats, product.carbohydrates);
                     });
                 });
-
+                    
                 updateTotalCalories(); // Обновляем общие калории
             }
         }

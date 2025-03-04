@@ -23,41 +23,5 @@
         public double Carbohydrates { get; set; }
     }
 
-    public class MealDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public string MealType { get; set; }
-        public double TotalCalories { get; set; }
-    }
-
-    public class MealEntryDto
-    {
-        public int Id { get; set; }
-        public int MealId { get; set; }
-        public int ProductId { get; set; }
-        public double Quantity { get; set; }
-        public double Calories { get; set; }
-    }
-
-    public class CaloriesBurnedDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double Burned { get; set; }
-    }
-
-    public class DailyReportDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public DateTime Date { get; set; }
-        public double TotalCaloriesConsumed { get; set; }
-        public double TotalCaloriesBurned { get; set; }
-        public double CalorieBalance { get; set; }
-    }
-
 
 }

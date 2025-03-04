@@ -6,8 +6,6 @@ public class MappingProfile : Profile
     {
         CreateMap<User, UserDto>().ReverseMap();
         CreateMap<Product, ProductDto>().ReverseMap();
-        CreateMap<Meal, MealDto>().ReverseMap();
-        CreateMap<MealEntry, MealEntryDto>().ReverseMap();
-        CreateMap<DailyReport, DailyReportDto>().ReverseMap();
+
     }
 }

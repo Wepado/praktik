@@ -23,7 +23,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-var key = "МойСекретныйКлюч123"; // Секретный ключ для подписи токена (лучше хранить в appsettings.json)
+var key = "Я люблю своего преподователя"; // Секретный ключ для подписи токена (лучше хранить в appsettings.json)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -200,87 +200,7 @@ app.MapDelete("/products/{id}", async (int id, ApplicationDbContext db) =>
     return Results.NoContent();
 }).RequireAuthorization(); // защищаем
 
-// *** MEALS ***
-app.MapGet("/meals", async (ApplicationDbContext db) => await db.Meals.ToListAsync())
-    .RequireAuthorization(); // защищаем
 
-app.MapPost("/meals", async (Meal meal, ApplicationDbContext db) =>
-{
-    if (meal.UserId <= 0  || string.IsNullOrWhiteSpace(meal.MealType))
-    {
-        return Results.BadRequest(new { message });
-    }
-
-    db.Meals.Add(meal);
-    await db.SaveChangesAsync();
-    return Results.Created($"/meals/{meal.Id}", meal);
-}).RequireAuthorization(); // защищаем
-
-app.MapDelete("/meals/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var meal = await db.Meals.FindAsync(id);
-    if (meal is null) return Results.NotFound();
-
-    db.Meals.Remove(meal);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
-
-// *** MEAL ENTRIES ***
-
-
-app.MapGet("/mealentries", async (ApplicationDbContext db) => await db.MealEntries.ToListAsync())
-    .RequireAuthorization(); // защищаем
-
-app.MapPost("/mealentries", async (MealEntry mealEntry, ApplicationDbContext db) =>
-{
-    if (mealEntry.Quantity <= 0 || mealEntry.Calories <= 0)
-    {
-        return Results.BadRequest(new { message });
-    }
-
-    db.MealEntries.Add(mealEntry);
-    await db.SaveChangesAsync();
-    return Results.Created($"/mealentries/{mealEntry.Id}", mealEntry);
-}).RequireAuthorization(); // защищаем
-
-app.MapDelete("/mealentries/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var mealEntry = await db.MealEntries.FindAsync(id);
-    if (mealEntry is null) return Results.NotFound();
-
-    db.MealEntries.Remove(mealEntry);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
-
-
-
-// *** DAILY REPORTS ***
-app.MapGet("/dailyreports", async (ApplicationDbContext db) => await db.DailyReports.ToListAsync())
-    .RequireAuthorization(); // защищаем
-
-app.MapPost("/dailyreports", async (DailyReport dailyReport, ApplicationDbContext db) =>
-{
-    if (dailyReport.TotalCaloriesConsumed <= 0 || dailyReport.TotalCaloriesBurned < 0)
-    {
-        return Results.BadRequest(new { message });
-    }
-
-    db.DailyReports.Add(dailyReport);
-    await db.SaveChangesAsync();
-    return Results.Created($"/dailyreports/{dailyReport.Id}", dailyReport);
-}).RequireAuthorization(); // защищаем
-
-app.MapDelete("/dailyreports/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var dailyReport = await db.DailyReports.FindAsync(id);
-    if (dailyReport is null) return Results.NotFound();
-
-    db.DailyReports.Remove(dailyReport);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
 
 app.Run();
 
@@ -312,41 +232,4 @@ public class Product
     public User User { get; set; }
 }
 
-public class Meal
-{
-    public int Id { get; set; }
 
-    // Какому пользователю принадлежит данный приём пищи
-    public int UserId { get; set; }
-    public User User { get; set; }
-
-    // Тип приёма пищи (например, "Завтрак", "Обед", "Ужин", "Перекус")
-    public string MealType { get; set; }
-
-    // Время, когда был совершен приём пищи
-    public DateTime MealTime { get; set; }
-
-    // Ссылка на продукт, выбранный пользователем для данного приёма пищи
-    public int ProductId { get; set; }
-    public Product Product { get; set; }
-}
-
-public class MealEntry
-{
-    public int Id { get; set; }
-    public int MealId { get; set; }
-    public int ProductId { get; set; }
-    public double Quantity { get; set; }
-    public double Calories { get; set; }
-}
-
-
-public class DailyReport
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public DateTime Date { get; set; }
-    public double TotalCaloriesConsumed { get; set; }
-    public double TotalCaloriesBurned { get; set; }
-    public double CalorieBalance { get; set; }
-}
