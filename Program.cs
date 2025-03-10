@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -21,8 +21,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
 var key = "Я люблю своего преподователя"; // Секретный ключ для подписи токена (лучше хранить в appsettings.json)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -41,10 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 var app = builder.Build();
 
-var message = " Неправильно введены данные, проверьте и попробуйте снова.";
-
 app.UseCors("AllowAll"); // Применяем CORS политику
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -92,28 +87,17 @@ app.MapPost("/login", async (UserLoginDto loginDto, ApplicationDbContext db) =>
 });
 
 // *** USERS ***
-app.MapGet("/users", async (ApplicationDbContext db) => await db.Users.ToListAsync())
-    .RequireAuthorization(); // защищаем
 
 app.MapGet("/users/{id}", async (int id, ApplicationDbContext db) =>
     await db.Users.FindAsync(id) is User user ? Results.Ok(user) : Results.NotFound())
-    .RequireAuthorization(); // защищаем
+    ; 
 
 app.MapPost("/users", async (User user, ApplicationDbContext db) =>
 {
-    if (string.IsNullOrWhiteSpace(user.Username) || user.Username.Length < 3 ||
-        string.IsNullOrWhiteSpace(user.Email) || !user.Email.Contains("@") ||
-        user.Age < 1 || user.Age > 120 ||
-        user.Weight < 1 || user.Weight > 500 ||
-        user.Height < 30 || user.Height > 250)
-    {
-        return Results.BadRequest(new { message });
-    }
-
     db.Users.Add(user);
     await db.SaveChangesAsync();
     return Results.Created($"/users/{user.Id}", user);
-}).RequireAuthorization(); // защищаем
+});
 
 app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationDbContext db) =>
 {
@@ -133,25 +117,16 @@ app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationDbContext 
 
     await db.SaveChangesAsync();
     return Results.NoContent();
-}).RequireAuthorization();
+});
 
-app.MapDelete("/users/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var user = await db.Users.FindAsync(id);
-    if (user is null) return Results.NotFound();
 
-    db.Users.Remove(user);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
 
 // *** PRODUCTS ***
-app.MapGet("/products", async (ApplicationDbContext db) => await db.Products.ToListAsync())
-    .RequireAuthorization(); // защищаем
+app.MapGet("/products", async (ApplicationDbContext db) => await db.Products.ToListAsync());
 
 app.MapGet("/products/{id}", async (int id, ApplicationDbContext db) =>
-    await db.Products.FindAsync(id) is Product product ? Results.Ok(product) : Results.NotFound())
-    .RequireAuthorization(); // защищаем
+    await db.Products.FindAsync(id) is Product product ? Results.Ok(product) : Results.NotFound());
+
 
 app.MapPost("/products", async (Product product, ClaimsPrincipal user, ApplicationDbContext db) =>
 {
@@ -164,31 +139,12 @@ app.MapPost("/products", async (Product product, ClaimsPrincipal user, Applicati
     int userId = int.Parse(userIdClaim.Value);
     product.UserId = userId;  // Привязываем продукт к текущему пользователю
 
-    // Проверяем входные данные
-    if (string.IsNullOrWhiteSpace(product.Name) || product.Calories <= 0 ||
-        product.Proteins < 0 || product.Fats < 0 || product.Carbohydrates < 0)
-    {
-        return Results.BadRequest(new { message = "Некорректные данные" });
-    }
 
     db.Products.Add(product);
     await db.SaveChangesAsync();
     return Results.Created($"/products/{product.Id}", product);
-}).RequireAuthorization();
-app.MapPut("/products/{id}", async (int id, Product updatedProduct, ApplicationDbContext db) =>
-{
-    var product = await db.Products.FindAsync(id);
-    if (product is null) return Results.NotFound();
+});
 
-    product.Name = updatedProduct.Name;
-    product.Calories = updatedProduct.Calories;
-    product.Proteins = updatedProduct.Proteins;
-    product.Fats = updatedProduct.Fats;
-    product.Carbohydrates = updatedProduct.Carbohydrates;
-
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).RequireAuthorization(); // защищаем
 
 app.MapDelete("/products/{id}", async (int id, ApplicationDbContext db) =>
 {
@@ -198,13 +154,11 @@ app.MapDelete("/products/{id}", async (int id, ApplicationDbContext db) =>
     db.Products.Remove(product);
     await db.SaveChangesAsync();
     return Results.NoContent();
-}).RequireAuthorization(); // защищаем
+});
 
 
 
 app.Run();
-
-// Models
 public class User
 {
     public int Id { get; set; }
